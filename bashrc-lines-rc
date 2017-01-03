@@ -1,0 +1,55 @@
+# Modified from http://ayozone.org/2008/02/25/bash-fancy-prompt-and-improvments/
+
+export TERM=xterm-256color
+export green="\[\033[0;38;5;2m\]"
+export cyan="\[\033[0;38;5;6m\]"
+export iceblue="\[\033[0;38;5;45m\]"
+export whiteonred="\[\033[0;41;5;41m\]"
+export bold=$(tput bold)
+export normal=$(tput sgr0)
+
+function pre_prompt {
+let RC=$?
+RC_CODE_COLOR=""
+if [ "$RC" != "0" ]
+then
+    RC_CODE_COLOR="$whiteonred$bold"
+else
+    RC_CODE_COLOR="$cyan$bold"
+fi
+
+newPWD="${PWD}"
+user="whoami"
+host=$(echo -n $HOSTNAME | sed -e "s/[\.].*//")
+datenow=$(date "+%a, %d %b %y")
+
+#let RC_LEN="${#$?}"
+#RC_FILL=""
+#while [ "" > "0" ]
+#do
+#    RC_FILL="${RC_FILL}#"
+#    let RC_LEN=${RC_LEN}-1
+#done
+
+#let promptsize=$(echo -n "--($user@$host ddd, DD mmm YY)---(${PWD})---" \
+let promptsize=$(echo -n "--(${PWD})---(RC: 000)---" \
+                 | wc -c | tr -d " ")
+let fillsize=${COLUMNS}-${promptsize}
+
+fill=""
+while [ "$fillsize" -gt "0" ] 
+do 
+    fill="${fill}-"
+	let fillsize=${fillsize}-1
+done
+
+if [ "$fillsize" -lt "0" ]
+then
+    let cutt=3-${fillsize}
+    newPWD="---$(echo -n $PWD | sed -e "s/\(^.\{$cutt\}\)\(.*\)/\2/")"
+fi
+
+PS1="\n$green--($iceblue$bold\$newPWD$green)-\${fill}-(RC:$RC_CODE_COLOR \$? $green)---\n--$iceblue(\$(date \"+%H:%M\"))$green-$normal "
+}
+
+PROMPT_COMMAND=pre_prompt
